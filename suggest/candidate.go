@@ -155,7 +155,7 @@ func (b *candidateCollector) qualify(pkg *types.Package) string {
 	if pkg == b.localpkg {
 		return ""
 	}
-	return pkg.Name()
+	return pkg.Path()
 }
 
 func (b *candidateCollector) appendObject(obj types.Object) {
