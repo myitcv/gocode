@@ -8,11 +8,13 @@ import (
 	"net/rpc"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
 	"time"
 
 	"github.com/mdempsky/gocode/gbimporter"
 	"github.com/mdempsky/gocode/suggest"
+	"github.com/mdempsky/gocode/vgo"
 )
 
 func doServer() {
@@ -85,7 +87,7 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 	}
 	now := time.Now()
 	cfg := suggest.Config{
-		Importer: gbimporter.New(&req.Context, req.Filename),
+		Importer: vgo.NewTestLoader(filepath.Dir(req.Filename)),
 	}
 	if *g_debug {
 		cfg.Logf = log.Printf
