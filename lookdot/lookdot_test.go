@@ -117,7 +117,7 @@ func TestWalk(t *testing.T) {
 		}
 
 		if !lookdot.Walk(&tv, visitor) {
-			t.Error("Walk(%q) returned false", test.lhs)
+			t.Errorf("Walk(%q) returned false", test.lhs)
 			continue
 		}
 

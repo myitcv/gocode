@@ -1,5 +1,8 @@
 language: go
 
+install:
+  - ./_scripts/install_vgo.sh
+
 go:
-  - 1.8.x
+  - 1.10.x
   - master
