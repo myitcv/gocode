@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"go/types"
 	"log"
 	"net"
 	"net/rpc"
@@ -74,9 +75,38 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 			}
 		}
 	}()
+	var importer types.Importer
+	vgoMode := false
+
+	if !*g_vgo {
+		// client sends an abs path
+		dir := filepath.Dir(req.Filename)
+		found := false
+		for {
+			if fi, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil && !fi.IsDir() {
+				found = true
+				vgoMode = true
+				break
+			}
+			d, _ := filepath.Split(dir)
+			if d == dir {
+				break
+			}
+			dir = d
+		}
+		if !found {
+			importer = gbimporter.New(&req.Context, req.Filename)
+		}
+	}
+
+	if importer == nil {
+		importer = vgo.NewTestLoader(filepath.Dir(req.Filename))
+	}
+
 	if *g_debug {
 		var buf bytes.Buffer
 		log.Printf("Got autocompletion request for '%s'\n", req.Filename)
+		log.Printf("vgo-mode: %v\n", vgoMode)
 		log.Printf("Cursor at: %d\n", req.Cursor)
 		buf.WriteString("-------------------------------------------------------\n")
 		buf.Write(req.Data[:req.Cursor])
@@ -86,8 +116,9 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 		log.Println("-------------------------------------------------------")
 	}
 	now := time.Now()
+
 	cfg := suggest.Config{
-		Importer: vgo.NewTestLoader(filepath.Dir(req.Filename)),
+		Importer: importer,
 	}
 	if *g_debug {
 		cfg.Logf = log.Printf
