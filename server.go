@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/mdempsky/gocode/gbimporter"
@@ -99,8 +100,13 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 		}
 	}
 
+	var vgoOutput *strings.Builder
+
 	if importer == nil {
-		importer = vgo.NewTestLoader(filepath.Dir(req.Filename))
+		v := vgo.NewTestLoader(filepath.Dir(req.Filename))
+		vgoOutput = new(strings.Builder)
+		v.Debug = vgoOutput
+		importer = v
 	}
 
 	if *g_debug {
@@ -126,6 +132,9 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 	candidates, d := cfg.Suggest(req.Filename, req.Data, req.Cursor)
 	elapsed := time.Since(now)
 	if *g_debug {
+		if vgoOutput != nil {
+			log.Printf("vgo output was: \n%v\n", vgoOutput.String())
+		}
 		log.Printf("Elapsed duration: %v\n", elapsed)
 		log.Printf("Offset: %d\n", res.Len)
 		log.Printf("Number of candidates found: %d\n", len(candidates))
