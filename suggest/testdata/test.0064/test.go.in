@@ -1,0 +1,8 @@
+package p
+
+var fi int
+
+func main() {
+	if fi || f@ {
+	}
+}

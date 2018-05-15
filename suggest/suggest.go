@@ -76,10 +76,18 @@ func (c *Config) Suggest(filename string, data []byte, cursor int) ([]Candidate,
 }
 
 func (c *Config) analyzePackage(filename string, data []byte, cursor int) (*token.FileSet, token.Pos, *types.Package) {
-	// If we're in trailing white space at the end of a scope,
-	// sometimes go/types doesn't recognize that variables should
-	// still be in scope there.
-	filesemi := bytes.Join([][]byte{data[:cursor], []byte(";"), data[cursor:]}, nil)
+	// If we're in trailing white space at the end of a scope, sometimes
+	// go/types doesn't recognize that variables should still be in scope there.
+	// But if we're in an if statement condition, adding a ';' causes us to
+	// "shift" the condition to become an initialiser, and the condition is then
+	// empty which represents a syntax error (hence the completion request
+	// panics).
+	var filesemi []byte
+	if bytes.HasPrefix(bytes.TrimLeft(data[cursor:], " "), []byte("{")) {
+		filesemi = data
+	} else {
+		filesemi = bytes.Join([][]byte{data[:cursor], []byte(";"), data[cursor:]}, nil)
+	}
 
 	fset := token.NewFileSet()
 	fileAST, err := parser.ParseFile(fset, filename, filesemi, parser.AllErrors)
