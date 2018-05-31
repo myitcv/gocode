@@ -3,15 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/importer"
-	"go/types"
+	"go/token"
 	"log"
 	"net"
 	"net/rpc"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
 	"time"
+
+	"myitcv.io/hybridimporter"
 
 	"github.com/mdempsky/gocode/gbimporter"
 	"github.com/mdempsky/gocode/suggest"
@@ -87,14 +89,13 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 		log.Println("-------------------------------------------------------")
 	}
 	now := time.Now()
-	var underlying types.ImporterFrom
-	if req.Source {
-		underlying = importer.For("source", nil).(types.ImporterFrom)
-	} else {
-		underlying = importer.Default().(types.ImporterFrom)
+	dir := filepath.Dir(req.Filename)
+	imp, err := hybridimporter.NewInstaller(req.Context.BuildContext(), token.NewFileSet(), dir)
+	if err != nil {
+		panic(fmt.Errorf("failed to create hybrid importer: %v", err))
 	}
 	cfg := suggest.Config{
-		Importer: gbimporter.New(&req.Context, req.Filename, underlying),
+		Importer: imp,
 	}
 	if *g_debug {
 		cfg.Logf = log.Printf

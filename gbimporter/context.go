@@ -32,3 +32,18 @@ func PackContext(ctx *build.Context) PackedContext {
 		InstallSuffix: ctx.InstallSuffix,
 	}
 }
+
+func (pc PackedContext) BuildContext() *build.Context {
+	return &build.Context{
+		GOARCH:        pc.GOARCH,
+		GOOS:          pc.GOOS,
+		GOROOT:        pc.GOROOT,
+		GOPATH:        pc.GOPATH,
+		CgoEnabled:    pc.CgoEnabled,
+		UseAllFiles:   pc.UseAllFiles,
+		Compiler:      pc.Compiler,
+		BuildTags:     pc.BuildTags,
+		ReleaseTags:   pc.ReleaseTags,
+		InstallSuffix: pc.InstallSuffix,
+	}
+}
