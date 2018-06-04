@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/token"
 	"log"
+	"myitcv.io/vgoimporter"
 	"net"
 	"net/rpc"
 	"os"
@@ -12,8 +13,6 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"time"
-
-	"myitcv.io/hybridimporter"
 
 	"github.com/mdempsky/gocode/gbimporter"
 	"github.com/mdempsky/gocode/suggest"
@@ -90,9 +89,9 @@ func (s *Server) AutoComplete(req *AutoCompleteRequest, res *AutoCompleteReply) 
 	}
 	now := time.Now()
 	dir := filepath.Dir(req.Filename)
-	imp, err := hybridimporter.NewInstaller(req.Context.BuildContext(), token.NewFileSet(), dir)
+	imp, err := vgoimporter.New(req.Context.BuildContext(), token.NewFileSet(), dir)
 	if err != nil {
-		panic(fmt.Errorf("failed to create hybrid importer: %v", err))
+		panic(fmt.Errorf("failed to create vgoimporter: %v", err))
 	}
 	cfg := suggest.Config{
 		Importer: imp,
